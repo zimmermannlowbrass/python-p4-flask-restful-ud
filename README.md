@@ -35,8 +35,8 @@ Now that we've explored how to create and retrieve records with `POST` and
 `GET`, let's look into updating records individually and in batches with
 `PATCH`.
 
-Run `pipenv install && pipenv shell` to enter your virtual environment. Run
-`flask db upgrade` from the `newsletters/` directory to create your database
+Run `pipenv install; pipenv shell` to enter your virtual environment. Run
+`flask db upgrade` from the `server/` directory to create your database
 and `python seed.py` to populate it with seed data.
 
 ***
@@ -63,7 +63,7 @@ converting it to a dictionary, since we want to change the attributes on the
 record.
 
 ```py
-# newsletters/app.py
+# server/app.py
 
 class NewsletterByID(Resource):
 
@@ -71,7 +71,7 @@ class NewsletterByID(Resource):
 
     def patch(self, id):
 
-        record = Newsletter.query.filter_by(id=id).first()
+        record = Newsletter.query.filter(Newsletter.id == id).first()
         for attr in request.form:
             setattr(record, attr, request.form[attr])
 
@@ -81,7 +81,7 @@ class NewsletterByID(Resource):
         response_dict = record.to_dict()
 
         response = make_response(
-            jsonify(response_dict),
+            response_dict,
             200
         )
 
@@ -119,7 +119,7 @@ head into the API and delete it. To accomplish that, we'll have to add a
 `delete()` route to `NewsletterByID`:
 
 ```py
-# newsletters/app.py
+# server/app.py
 
 class NewsletterByID(Resource):
 
@@ -127,7 +127,7 @@ class NewsletterByID(Resource):
 
     def delete(self, id):
 
-        record = Newsletter.query.filter_by(id=id).first()
+        record = Newsletter.query.filter(Newsletter.id == id).first()
         
         db.session.delete(record)
         db.session.commit()
@@ -135,7 +135,7 @@ class NewsletterByID(Resource):
         response_dict = {"message": "record successfully deleted"}
 
         response = make_response(
-            jsonify(response_dict),
+            response_dict,
             200
         )
 
@@ -166,11 +166,11 @@ the routes for `GET`, `POST`, `PATCH`, `DELETE`, and more at each URL.
 ## Solution Code
 
 ```py
-# newsletters/app.py
+# server/app.py
 
 #!/usr/bin/env python3
 
-from flask import Flask, jsonify, request, make_response
+from flask import Flask, request, make_response
 from flask_migrate import Migrate
 from flask_restful import Api, Resource
 
@@ -179,7 +179,7 @@ from models import db, Newsletter
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///newsletters.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
+app.json.compact = False
 
 migrate = Migrate(app, db)
 db.init_app(app)
@@ -195,7 +195,7 @@ class Index(Resource):
         }
         
         response = make_response(
-            jsonify(response_dict),
+            response_dict,
             200,
         )
 
@@ -210,7 +210,7 @@ class Newsletters(Resource):
         response_dict_list = [n.to_dict() for n in Newsletter.query.all()]
 
         response = make_response(
-            jsonify(response_dict_list),
+            response_dict_list,
             200,
         )
 
@@ -229,7 +229,7 @@ class Newsletters(Resource):
         response_dict = new_record.to_dict()
 
         response = make_response(
-            jsonify(response_dict),
+            response_dict,
             201,
         )
 
@@ -244,7 +244,7 @@ class NewsletterByID(Resource):
         response_dict = Newsletter.query.filter_by(id=id).first().to_dict()
 
         response = make_response(
-            jsonify(response_dict),
+            response_dict,
             200,
         )
 
@@ -262,7 +262,7 @@ class NewsletterByID(Resource):
         response_dict = record.to_dict()
 
         response = make_response(
-            jsonify(response_dict),
+            response_dict,
             200
         )
 
@@ -278,7 +278,7 @@ class NewsletterByID(Resource):
         response_dict = {"message": "record successfully deleted"}
 
         response = make_response(
-            jsonify(response_dict),
+            response_dict,
             200
         )
 
@@ -288,7 +288,7 @@ api.add_resource(NewsletterByID, '/newsletters/<int:id>')
 
 
 if __name__ == '__main__':
-    app.run(port=5555)
+    app.run(port=5555, debug=True)
 
 ```
 
