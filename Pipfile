@@ -12,6 +12,7 @@ flask-sqlalchemy = "2.5.1"
 importlib-resources = "5.10.0"
 ipdb = "0.13.9"
 sqlalchemy-serializer = "1.4.1"
+importlib-metadata = "*"
 
 [dev-packages]
 
